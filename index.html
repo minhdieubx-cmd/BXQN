@@ -1,290 +1,344 @@
 ﻿<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <base target="_top">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Biểu Đồ Xe Xuất Bến</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-      body { 
-        background-color: #f4f6f9; 
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-        padding-bottom: 80px; 
-      }
-      /* Giao diện thanh Tiêu đề */
-      .header-panel { 
-        background: linear-gradient(135deg, #1e3c72, #2a5298); 
-        color: white; 
-        padding: 20px 15px; 
-        border-radius: 0 0 25px 25px; 
-        margin-bottom: 20px; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-      }
-      /* Cấu trúc lưới chọn tuyến đường (2 cột) */
-      .card-route { 
-        background: white; 
-        border: none; 
-        border-radius: 16px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.04); 
-        text-align: center; 
-        padding: 20px 10px; 
-        transition: transform 0.2s, background-color 0.2s; 
-        cursor: pointer; 
-        height: 100%; 
-      }
-      .card-route:active { transform: scale(0.95); background-color: #f8f9fa; }
-      .icon-route { 
-        width: 45px; 
-        height: 45px; 
-        background-color: #e3f2fd; 
-        color: #0d47a1; 
-        border-radius: 50%; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        margin: 0 auto 10px auto; 
-      }
-      /* Thẻ danh sách giờ của từng Đơn vị */
-      .card-bus { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 16px; background: #ffffff; }
-      .badge-tuyen { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; padding: 6px 12px; border-radius: 30px; background-color: #e3f2fd; color: #0d47a1; }
-      .badge-time { background-color: #f1f3f5; color: #212529; font-size: 0.9rem; margin: 3px; display: inline-block; padding: 8px 12px; border-radius: 8px; font-weight: 600; border: 1px solid #dee2e6; cursor: pointer; transition: 0.2s; }
-      .badge-time:active { background-color: #e2e6ea; transform: scale(0.95); }
-      .count-badge { font-size: 0.75rem; color: #dc3545; font-weight: bold; margin-left: 2px; }
-      /* Menu cố định dưới đáy màn hình */
-      .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: white; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); padding: 10px 15px; border-radius: 20px 20px 0 0; z-index: 1000; display: flex; justify-content: center; }
-      .btn-nav { background: #e3f2fd; color: #0d47a1; font-weight: bold; border-radius: 30px; padding: 10px 25px; border: none; width: 100%; max-width: 300px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-      .loader { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 250px; }
-      /* Định dạng hộp thoại Popup */
-      .modal-content { border-radius: 16px; border: none; }
-      .modal-header { border-radius: 16px 16px 0 0; }
-      .modal-body-scroll { max-height: 60vh; overflow-y: auto; }
-      .bus-item { border-bottom: 1px dashed #dee2e6; padding-bottom: 15px; margin-bottom: 15px; }
-      .bus-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    </style>
-  </head>
-  <body>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Biểu Đồ Xe Xuất Bến</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Reset & Base */
+    body { background-color: #f5f7fb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding-bottom: 90px; overflow-x: hidden; }
+    
+    /* Header bo góc sâu */
+    .app-header { background: #3b82f6; color: white; padding: 40px 15px 60px 15px; border-radius: 0 0 30px 30px; text-align: center; position: relative; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2); }
+    .app-header h3 { font-weight: 800; font-size: 1.4rem; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .app-header p { font-size: 0.95rem; margin: 0; opacity: 0.9; font-weight: 500; }
 
-    <div class="header-panel text-center">
-      <h5 class="mb-0 fw-bold text-uppercase tracking-wider">BIỂU ĐỒ XE XUẤT BẾN</h5>
+    /* Thanh Tìm kiếm (Search Bar) nổi lên giữa ranh giới Header */
+    .search-container { margin: -25px 20px 20px 20px; position: relative; z-index: 10; }
+    .search-box { background: white; border-radius: 50px; display: flex; align-items: center; padding: 12px 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); border: 1px solid #edf2f7; }
+    .search-box svg { color: #94a3b8; width: 20px; height: 20px; margin-right: 10px; flex-shrink: 0; }
+    .search-box input { border: none; outline: none; width: 100%; background: transparent; font-size: 0.95rem; color: #1e293b; }
+    .search-box input::placeholder { color: #94a3b8; }
+
+    /* Nút Tuyến Đường (Lưới 2 cột) */
+    .section-title { font-weight: 700; color: #1e293b; font-size: 1.1rem; margin-bottom: 15px; padding-left: 20px; margin-top: 10px; }
+    .route-grid { padding: 0 20px; display: flex; flex-wrap: wrap; gap: 12px; }
+    .route-pill { width: calc(50% - 6px); background: #ffffff; color: #2563eb; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 10px; text-align: center; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+    .route-pill:active { background: #eff6ff; transform: scale(0.96); border-color: #bfdbfe; }
+
+    /* Màn hình chi tiết - Tiêu đề Tuyến */
+    .detail-header { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; margin-bottom: 20px; margin-top: 10px; }
+    .detail-title { font-weight: 800; color: #1e293b; font-size: 1.5rem; margin: 0; text-transform: uppercase; }
+    .unit-count-badge { background: #e2e8f0; color: #475569; font-size: 0.8rem; font-weight: 600; padding: 6px 14px; border-radius: 50px; }
+
+    /* Thẻ Card Thông tin Đơn vị */
+    .bus-cards-container { padding: 0 20px; }
+    .card-bus { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
+    .badge-bx { display: inline-block; background: #eff6ff; color: #3b82f6; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 30px; margin-bottom: 12px; }
+    .unit-name { font-weight: 800; color: #1e293b; font-size: 1.1rem; margin-bottom: 15px; line-height: 1.4; }
+    
+    /* Các viên thuốc Giờ chạy */
+    .time-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .time-pill { background: #f8fafc; color: #2563eb; font-weight: 700; font-size: 0.95rem; padding: 10px 18px; border-radius: 12px; cursor: pointer; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .time-pill:active { background: #eff6ff; transform: scale(0.95); border-color: #bfdbfe; }
+    .count-badge { font-size: 0.75rem; color: #ef4444; margin-left: 4px; font-weight: 800; }
+
+    /* Menu dưới cùng: Tất cả tuyến đường */
+    .bottom-nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 12px 20px; display: flex; justify-content: center; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.04); border-radius: 24px 24px 0 0; }
+    .nav-bar-btn { background: #eff6ff; color: #2563eb; border: none; width: 100%; max-width: 350px; padding: 14px; border-radius: 50px; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s; }
+    .nav-bar-btn:active { transform: scale(0.96); background: #dbeafe; }
+
+    /* Hộp thoại Modal Popup bo góc mượt */
+    .modal-content { border-radius: 24px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .modal-header { background: #eff6ff; border-bottom: none; padding: 20px 20px 10px 20px; }
+    .modal-title { font-weight: 800; color: #1e293b; font-size: 1.1rem; }
+    .btn-close { background-color: #e2e8f0; border-radius: 50%; opacity: 1; padding: 8px; margin-right: 0; }
+    .modal-body-scroll { max-height: 60vh; overflow-y: auto; padding: 0 20px 20px 20px; background: #eff6ff; }
+    .bus-detail-item { background: white; border-radius: 16px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    .bus-detail-item:last-child { margin-bottom: 0; }
+
+    .loader { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 200px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #64748b; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <h3>🚌 BIỂU ĐỒ XE XUẤT BẾN</h3>
+    <p>Bến xe Khách TT Quy Nhơn</p>
+  </div>
+
+  <div class="search-container">
+    <div class="search-box">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </svg>
+      <input type="text" id="searchInput" placeholder="Tìm tuyến, nhà xe, biển số...">
+    </div>
+  </div>
+
+  <div id="loading" class="loader">
+    <div class="spinner-border text-primary" role="status"></div>
+    <div class="mt-3 text-muted fw-bold">Đang tải dữ liệu...</div>
+  </div>
+
+  <div id="mainContainer" style="display: none;">
+    
+    <div id="screenRouteList">
+      <div class="section-title">📍 Chọn tuyến đường:</div>
+      <div class="route-grid" id="routeGrid"></div>
     </div>
 
-    <div id="loading" class="loader">
-      <div class="spinner-border text-primary mb-2" role="status"></div>
-      <span class="text-muted small">Đang kết nối dữ liệu...</span>
-    </div>
-
-    <div class="container px-3" id="mainContainer" style="display: none;">
-      <div id="routeGridScreen">
-        <h6 class="fw-bold text-muted small text-uppercase mb-3 px-1">📍 Chọn tuyến đường:</h6>
-        <div class="row g-3" id="routeGrid"></div>
+    <div id="screenDetail" style="display: none;">
+      <div class="detail-header">
+        <h2 class="detail-title" id="detailTitle">TÊN TUYẾN</h2>
+        <span class="unit-count-badge" id="detailCount">0 đơn vị</span>
       </div>
+      <div class="bus-cards-container" id="busList"></div>
+    </div>
 
-      <div id="detailScreen" style="display: none;">
-        <div class="d-flex justify-content-between align-items-center mb-3 px-1">
-          <h6 class="fw-bold text-primary text-uppercase mb-0" id="detailTitle"></h6>
-          <span class="badge bg-secondary rounded-pill" id="detailCount"></span>
+  </div>
+
+  <div class="bottom-nav-bar" id="bottomNavBar" style="display: none;">
+    <button class="nav-bar-btn" onclick="goHome()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/>
+      </svg>
+      Tất cả các tuyến đường
+    </button>
+  </div>
+
+  <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered px-2">
+      <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h6 class="modal-title" id="modalTitle">Giờ xuất bến</h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div id="busList"></div>
-      </div>
-    </div>
-
-    <div class="bottom-nav">
-      <button class="btn-nav" onclick="goHome()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-grid-fill" viewBox="0 0 16 16">
-          <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/>
-        </svg>
-        Tất cả tuyến đường
-      </button>
-    </div>
-
-    <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered px-2">
-        <div class="modal-content shadow-lg">
-          <div class="modal-header bg-primary text-white">
-            <h6 class="modal-title fw-bold" id="modalTitle">Chi tiết chuyến xe</h6>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-body-scroll" id="modalBody">
           </div>
-          <div class="modal-body p-0" id="modalBody"></div>
-        </div>
       </div>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      let allData = [];
-      let uniqueRoutes = [];
-      
-      // =======================================================================
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // =======================================================================
       // BẠN HÃY THAY ĐƯỜNG LINK API GOOGLE APPS SCRIPT CỦA BẠN VÀO DƯỚI ĐÂY NHA:
       const API_URL = "https://script.google.com/macros/s/AKfycbzumO6pB-kuA_pnSHARp0gejmG9fss9139KWcgEUlNuRElNeZ_JUyob3gGYpRwjm2JESA/exec"; 
       // =======================================================================
 
-      // Tự động gọi API lấy dữ liệu khi ứng dụng trên Vercel mở ra
-      document.addEventListener("DOMContentLoaded", function() {
-        fetch(API_URL)
-          .then(response => response.json())
-          .then(data => onDataLoad(data))
-          .catch(error => {
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("mainContainer").style.display = "block";
-            document.getElementById("routeGridScreen").innerHTML = `<div class="alert alert-danger text-center shadow-sm">Lỗi gọi API: Vui lòng kiểm tra lại cấu hình link Script API.</div>`;
-          });
+    let allData = [];
+    let uniqueRoutes = [];
+    let currentScreen = 'home';
+    let currentActiveRoute = '';
+
+    document.addEventListener("DOMContentLoaded", function() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          if(data.success) {
+            processData(data.rows);
+          } else {
+            showError("Lỗi dữ liệu: " + data.error);
+          }
+        })
+        .catch(err => showError("Lỗi kết nối API. Vui lòng kiểm tra lại cấu hình link API."));
+
+      // Gắn sự kiện ô Tìm kiếm
+      document.getElementById('searchInput').addEventListener('input', handleSearch);
+    });
+
+    function showError(msg) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("mainContainer").style.display = "block";
+      document.getElementById("routeGrid").innerHTML = `<div class="empty-state w-100 text-danger">${msg}</div>`;
+    }
+
+    function processData(rows) {
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("mainContainer").style.display = "block";
+      allData = rows;
+      uniqueRoutes = [...new Set(allData.map(item => item.tuyen))].filter(t => t !== "");
+      renderRouteGrid(uniqueRoutes);
+    }
+
+    // MÀN HÌNH NGOÀI: DANH SÁCH TUYẾN
+    function renderRouteGrid(routesToRender) {
+      const container = document.getElementById("routeGrid");
+      container.innerHTML = "";
+
+      if (routesToRender.length === 0) {
+        container.innerHTML = `<div class="empty-state text-muted w-100 mt-4">Không tìm thấy thông tin phù hợp.</div>`;
+        return;
+      }
+
+      routesToRender.forEach(tuyen => {
+        const btn = document.createElement("div");
+        btn.className = "route-pill";
+        btn.innerText = tuyen;
+        btn.onclick = () => showRouteDetail(tuyen);
+        container.appendChild(btn);
+      });
+    }
+
+    // CHUYỂN VÀO MÀN HÌNH TRONG: CHI TIẾT TUYẾN
+    function showRouteDetail(tuyenName) {
+      currentScreen = 'detail';
+      currentActiveRoute = tuyenName;
+      document.getElementById("screenRouteList").style.display = "none";
+      document.getElementById("screenDetail").style.display = "block";
+      document.getElementById("bottomNavBar").style.display = "flex"; // Hiện thanh menu đáy
+      
+      document.getElementById("detailTitle").innerText = tuyenName;
+      document.getElementById("searchInput").value = ""; 
+
+      const filtered = allData.filter(item => item.tuyen === tuyenName);
+      renderBusList(filtered);
+      window.scrollTo(0, 0);
+    }
+
+    // QUAY LẠI MÀN HÌNH CHÍNH
+    function goHome() {
+      currentScreen = 'home';
+      currentActiveRoute = '';
+      document.getElementById("screenDetail").style.display = "none";
+      document.getElementById("bottomNavBar").style.display = "none"; // Ẩn thanh menu đáy
+      document.getElementById("screenRouteList").style.display = "block";
+      
+      document.getElementById("searchInput").value = "";
+      renderRouteGrid(uniqueRoutes);
+      window.scrollTo(0, 0);
+    }
+
+    // XỬ LÝ VẼ CHI TIẾT CÁC THẺ GIỜ XE
+    function renderBusList(filteredData) {
+      const container = document.getElementById("busList");
+      container.innerHTML = "";
+
+      if (filteredData.length === 0) {
+        container.innerHTML = `<div class="empty-state">Không có lịch chạy phù hợp với tìm kiếm.</div>`;
+        document.getElementById("detailCount").innerText = "0 đơn vị";
+        return;
+      }
+
+      // Nhóm theo Đơn vị vận tải
+      const groupedByDonVi = {};
+      filteredData.forEach(item => {
+        if (!groupedByDonVi[item.donvi]) groupedByDonVi[item.donvi] = [];
+        groupedByDonVi[item.donvi].push(item);
       });
 
-      function onDataLoad(response) {
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("mainContainer").style.display = "block";
+      document.getElementById("detailCount").innerText = Object.keys(groupedByDonVi).length + " đơn vị";
 
-        if (!response.success) {
-          document.getElementById("routeGridScreen").innerHTML = `<div class="alert alert-danger shadow-sm">Lỗi dữ liệu: ${response.error}</div>`;
-          return;
+      // Nhóm theo Giờ để hiện báo hiệu đa xe
+      for (const donvi in groupedByDonVi) {
+        const dataDonVi = groupedByDonVi[donvi];
+        const tuyenName = dataDonVi[0].tuyen;
+        
+        const groupedByGio = {};
+        dataDonVi.forEach(chuyen => {
+          let g = chuyen.gio.trim();
+          if (g !== "") {
+            if (!groupedByGio[g]) groupedByGio[g] = [];
+            groupedByGio[g].push(chuyen);
+          }
+        });
+
+        let gioHtml = "";
+        for (const gio in groupedByGio) {
+          const xeCungGio = groupedByGio[gio];
+          let uId = 'xe_' + Math.random().toString(36).substr(2, 9);
+          window[uId] = xeCungGio; 
+          
+          let badgeExtra = xeCungGio.length > 1 ? `<span class="count-badge">(${xeCungGio.length})</span>` : "";
+          gioHtml += `<div class="time-pill shadow-sm" onclick="openModal('${uId}', '${gio}')">${gio}${badgeExtra}</div>`;
         }
 
-        allData = response.rows;
-        uniqueRoutes = [...new Set(allData.map(item => item.tuyen))].filter(t => t !== "");
-        renderRouteGrid();
+        const card = document.createElement("div");
+        card.className = "card-bus";
+        card.innerHTML = `
+          <div class="badge-bx text-uppercase">BX: ${tuyenName}</div>
+          <div class="unit-name">${donvi}</div>
+          <div class="time-grid">${gioHtml || '<span class="text-muted small">Đang cập nhật lịch chạy</span>'}</div>
+        `;
+        container.appendChild(card);
       }
+    }
 
-      function renderRouteGrid() {
-        const gridContainer = document.getElementById("routeGrid");
-        gridContainer.innerHTML = "";
+    // TÌM KIẾM SÂU TOÀN DIỆN
+    function handleSearch(e) {
+      const term = e.target.value.toLowerCase().trim();
 
-        uniqueRoutes.forEach(tuyen => {
-          const col = document.createElement("div");
-          col.className = "col-6";
-          col.innerHTML = `
-            <div class="card-route" onclick="showRouteDetail('${tuyen}')">
-              <div class="icon-route shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-bus-front" viewBox="0 0 16 16">
-                  <path d="M5 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-6-1a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2H7zm1-6c-1.876 0-3.426.109-4.552.226A.5.5 0 0 0 3 4.723v3.554a.5.5 0 0 0 .448.497C4.574 8.891 6.124 9 8 9c1.876 0 3.426-.109 4.552-.226A.5.5 0 0 0 13 8.277V4.723a.5.5 0 0 0-.448-.497A44.303 44.303 0 0 0 8 4zm0-1c-1.837 0-3.353.107-4.448.22a.5.5 0 1 1-.104-.994A44.304 44.304 0 0 1 8 2c1.876 0 3.426.109 4.552.226a.5.5 0 1 1-.104.994A43.306 43.306 0 0 0 8 3z"/>
-                  <path d="M15 8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1V2.64c0-1.188-.845-2.232-2.064-2.372A43.61 43.61 0 0 0 8 0C5.9 0 4.208.136 3.064.268 1.845.408 1 1.452 1 2.64V4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v3.5c0 .818.393 1.544 1 2v2a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-2h6v2a.5.5 0 0 0 .5.5h2a.5.5 0 0 0 .5-.5v-2c.607-.456 1-1.182 1-2V8zM8 1c1.763 0 3.253.102 4.373.218.825.086 1.627.815 1.627 1.667V4H2v-1.115c0-.852.802-1.58 1.627-1.667C4.747 1.102 6.237 1 8 1z"/>
-                </svg>
-              </div>
-              <div class="fw-bold text-dark" style="font-size: 0.9rem;">${tuyen}</div>
-            </div>
-          `;
-          gridContainer.appendChild(col);
+      if (currentScreen === 'home') {
+        const filteredRoutes = uniqueRoutes.filter(route => {
+          if (route.toLowerCase().includes(term)) return true;
+          return allData.some(bus => 
+            bus.tuyen === route && (
+              (bus.nhaxe && bus.nhaxe.toLowerCase().includes(term)) ||
+              (bus.soxe && bus.soxe.toLowerCase().includes(term)) ||
+              (bus.donvi && bus.donvi.toLowerCase().includes(term))
+            )
+          );
         });
-      }
+        renderRouteGrid(filteredRoutes);
 
-      function showRouteDetail(tuyenName) {
-        document.getElementById("routeGridScreen").style.display = "none";
-        document.getElementById("detailScreen").style.display = "block";
-        document.getElementById("detailTitle").innerText = "Tuyến: " + tuyenName;
-
-        const filtered = allData.filter(item => item.tuyen === tuyenName);
-        renderBusList(filtered);
-        window.scrollTo(0, 0);
-      }
-
-      function goHome() {
-        document.getElementById("detailScreen").style.display = "none";
-        document.getElementById("routeGridScreen").style.display = "block";
-        window.scrollTo(0, 0);
-      }
-
-      function renderBusList(filteredData) {
-        const listContainer = document.getElementById("busList");
-        listContainer.innerHTML = "";
-
-        if (filteredData.length === 0) return;
-
-        // Nhóm theo Đơn vị vận tải
-        const groupedByDonVi = {};
-        filteredData.forEach(item => {
-          if (!groupedByDonVi[item.donvi]) { groupedByDonVi[item.donvi] = []; }
-          groupedByDonVi[item.donvi].push(item);
+      } else if (currentScreen === 'detail') {
+        const currentRouteData = allData.filter(item => item.tuyen === currentActiveRoute);
+        const filteredBuses = currentRouteData.filter(bus => {
+          return (bus.donvi && bus.donvi.toLowerCase().includes(term)) ||
+                 (bus.nhaxe && bus.nhaxe.toLowerCase().includes(term)) ||
+                 (bus.soxe && bus.soxe.toLowerCase().includes(term)) ||
+                 (bus.gio && bus.gio.toLowerCase().includes(term));
         });
+        renderBusList(filteredBuses);
+      }
+    }
 
-        document.getElementById("detailCount").innerText = Object.keys(groupedByDonVi).length + " Đơn vị";
-
-        // Nhóm trùng giờ trong cùng một đơn vị
-        for (const donvi in groupedByDonVi) {
-          const dataCuaDonVi = groupedByDonVi[donvi];
-          const groupedByGio = {};
+    // HIỂN THỊ POPUP CHI TIẾT
+    function openModal(uId, gioText) {
+      const danhSachXe = window[uId];
+      document.getElementById('modalTitle').innerText = 'Giờ xuất bến: ' + gioText;
+      
+      let bodyContent = '';
+      danhSachXe.forEach((chuyen, index) => {
+        let stt = danhSachXe.length > 1 ? `<div class="fw-bold text-primary mb-2 border-bottom pb-2">🚌 Đầu xe thứ ${index + 1}</div>` : '';
+        
+        if (!chuyen.soxe && !chuyen.nhaxe && !chuyen.sdt) {
+          bodyContent += `
+            <div class="bus-detail-item">
+              ${stt}
+              <div class="text-center text-muted mt-2 small">Đang cập nhật thông tin chi tiết nốt tài.</div>
+            </div>`;
+        } else {
+          let btnGoiDien = chuyen.sdt ? `<a href="tel:${chuyen.sdt}" class="btn btn-sm btn-primary fw-bold px-3 rounded-pill">📞 Gọi ngay</a>` : `<span class="text-muted small">Chưa có</span>`;
           
-          dataCuaDonVi.forEach(chuyen => {
-            let g = chuyen.gio.trim();
-            if (g !== "") {
-              if (!groupedByGio[g]) { groupedByGio[g] = []; }
-              groupedByGio[g].push(chuyen);
-            }
-          });
-
-          let gioHtml = "";
-          for (const gio in groupedByGio) {
-            const danhSachXeCungGio = groupedByGio[gio];
-            let uId = 'xe_' + Math.random().toString(36).substr(2, 9);
-            window[uId] = danhSachXeCungGio; 
-            
-            // Hiện số lượng xe nhỏ màu đỏ nếu có từ 2 xe trùng giờ trở lên
-            let badgeExtra = danhSachXeCungGio.length > 1 ? `<span class="count-badge">(${danhSachXeCungGio.length})</span>` : "";
-
-            gioHtml += `<span class="badge-time shadow-sm" onclick="openModal('${uId}', '${gio}')">${gio}${badgeExtra}</span>`;
-          }
-
-          const tuyenName = dataCuaDonVi[0].tuyen;
-          const card = document.createElement("div");
-          card.className = "card card-bus";
-          card.innerHTML = `
-            <div class="card-body p-3">
-              <div class="mb-3"><span class="badge-tuyen text-uppercase">BX: ${tuyenName}</span></div>
-              <h6 class="card-title fw-bold text-dark mb-3" style="line-height: 1.4;">${donvi}</h6>
-              <div class="border-top pt-2">
-                <div class="text-secondary small mb-2 fw-medium">Bấm vào giờ để xem chi tiết:</div>
-                <div class="d-flex flex-wrap">${gioHtml || '<span class="text-muted small italic">Chưa có lịch chạy</span>'}</div>
+          bodyContent += `
+            <div class="bus-detail-item">
+              ${stt}
+              <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
+                <span class="text-secondary small fw-medium">Biển số:</span>
+                <span class="fw-bold text-dark">${chuyen.soxe || '---'}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-secondary small fw-medium">Nhà xe:</span>
+                <span class="fw-bold text-dark text-end">${chuyen.nhaxe || '---'}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                <span class="text-secondary small fw-medium">Điện thoại:</span>
+                ${btnGoiDien}
               </div>
             </div>
           `;
-          listContainer.appendChild(card);
         }
-      }
-
-      // Xử lý tạo nội dung hiển thị trong Popup khi chạm vào giờ
-      function openModal(uId, gioText) {
-        const danhSachXe = window[uId];
-        document.getElementById('modalTitle').innerText = 'Giờ xuất bến: ' + gioText;
-        
-        let bodyContent = '<div class="modal-body-scroll p-3">';
-
-        danhSachXe.forEach((chuyen, index) => {
-          let stt = danhSachXe.length > 1 ? `<div class="fw-bold text-primary mb-2">🚌 Đầu xe thứ ${index + 1}</div>` : '';
-          
-          if (!chuyen.soxe && !chuyen.nhaxe && !chuyen.sdt) {
-            bodyContent += `
-              <div class="bus-item">
-                ${stt}
-                <div class="text-center text-muted mt-2">Thông tin chi tiết của nốt tài này đang được cập nhật.</div>
-              </div>`;
-          } else {
-            let btnGoiDien = chuyen.sdt ? `<a href="tel:${chuyen.sdt}" class="btn btn-sm btn-success fw-bold px-3 shadow-sm">📞 Gọi ${chuyen.sdt}</a>` : `<span class="text-muted small">Đang cập nhật</span>`;
-            
-            bodyContent += `
-              <div class="bus-item">
-                ${stt}
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="text-muted small">Biển số xe:</span>
-                  <span class="fw-bold text-dark">${chuyen.soxe || '---'}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="text-muted small">Nhà xe:</span>
-                  <span class="fw-bold text-dark text-end">${chuyen.nhaxe || '---'}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-muted small">Điện thoại:</span>
-                  ${btnGoiDien}
-                </div>
-              </div>
-            `;
-          }
-        });
-        
-        bodyContent += '</div>';
-        document.getElementById('modalBody').innerHTML = bodyContent;
-        var infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
-        infoModal.show();
-      }
-    </script>
-  </body>
+      });
+      
+      document.getElementById('modalBody').innerHTML = bodyContent;
+      var infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+      infoModal.show();
+    }
+  </script>
+</body>
 </html>
