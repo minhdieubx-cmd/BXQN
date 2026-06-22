@@ -66,8 +66,8 @@
 <body>
 
   <div class="app-header">
-    <h3> BẾN XE KHÁCH TT QUY NHƠN </h3>
-    <p>🚌 BIỂU ĐỒ XE XUẤT BẾN</p>
+    <h3>🚌 BIỂU ĐỒ XE XUẤT BẾN</h3>
+    <p>Bến xe Khách TT Quy Nhơn</p>
   </div>
 
   <div class="search-container">
@@ -125,7 +125,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // =======================================================================
+    // =====================================================================
+     // =======================================================================
       // BẠN HÃY THAY ĐƯỜNG LINK API GOOGLE APPS SCRIPT CỦA BẠN VÀO DƯỚI ĐÂY NHA:
       const API_URL = "https://script.google.com/macros/s/AKfycbzumO6pB-kuA_pnSHARp0gejmG9fss9139KWcgEUlNuRElNeZ_JUyob3gGYpRwjm2JESA/exec"; 
       // =======================================================================
@@ -297,7 +298,7 @@
       }
     }
 
-    // HIỂN THỊ POPUP CHI TIẾT
+    // HIỂN THỊ POPUP CHI TIẾT (HIỂN THỊ TRỰC TIẾP SỐ ĐIỆN THOẠI)
     function openModal(uId, gioText) {
       const danhSachXe = window[uId];
       document.getElementById('modalTitle').innerText = 'Giờ xuất bến: ' + gioText;
@@ -313,7 +314,8 @@
               <div class="text-center text-muted mt-2 small">Đang cập nhật thông tin chi tiết nốt tài.</div>
             </div>`;
         } else {
-          let btnGoiDien = chuyen.sdt ? `<a href="tel:${chuyen.sdt}" class="btn btn-sm btn-primary fw-bold px-3 rounded-pill">📞 Gọi ngay</a>` : `<span class="text-muted small">Chưa có</span>`;
+          // HIỂN THỊ SỐ ĐIỆN THOẠI LUÔN LÊN NÚT BẤM (VẪN CÓ THỂ CHẠM VÀO ĐỂ GỌI)
+          let btnGoiDien = chuyen.sdt ? `<a href="tel:${chuyen.sdt}" class="btn btn-sm btn-primary fw-bold px-3 rounded-pill" style="letter-spacing: 0.5px;">📞 ${chuyen.sdt}</a>` : `<span class="text-muted small">Chưa có</span>`;
           
           bodyContent += `
             <div class="bus-detail-item">
